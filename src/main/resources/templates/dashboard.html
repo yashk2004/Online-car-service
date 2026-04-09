@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoCare — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d0f;
+      --surface: #161618;
+      --surface2: #1e1e21;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
+      --accent: #e8473f;
+      --accent2: #ff6b35;
+      --gold: #c9a84c;
+      --text: #f0ede8;
+      --muted: #7a7875;
+      --muted2: #9a9793;
+      --success: #3ecf8e;
+      --info: #4f9cf9;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+
+    .layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; position: relative; z-index: 1; }
+
+    /* SIDEBAR */
+    .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 2.5rem; }
+    .sidebar-logo-icon { width: 34px; height: 34px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sidebar-logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--text); }
+    .nav-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 0.75rem; margin-top: 1.5rem; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; text-decoration: none; font-size: 14px; color: var(--muted2); transition: background 0.2s, color 0.2s; margin-bottom: 2px; }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: rgba(232,71,63,0.1); color: var(--text); border: 1px solid rgba(232,71,63,0.15); }
+    .nav-item.active svg { color: var(--accent); }
+    .sidebar-bottom { margin-top: auto; }
+    .user-pill { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--surface2); border-radius: 12px; border: 1px solid var(--border); }
+    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(232,71,63,0.15); border: 1px solid rgba(232,71,63,0.2); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: var(--accent); flex-shrink: 0; }
+    .user-pill-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .user-pill-email { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+    .logout-btn { margin-top: 0.75rem; display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 10px; text-decoration: none; font-size: 13px; color: var(--muted); transition: background 0.2s, color 0.2s; }
+    .logout-btn:hover { background: rgba(232,71,63,0.08); color: var(--accent); }
+
+    /* MAIN */
+    .main { padding: 2.5rem; overflow-y: auto; }
+    .page-header { margin-bottom: 2.5rem; }
+    .page-eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--accent); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px; }
+    .page-eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+    .page-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 1px; line-height: 1; }
+    .page-sub { font-size: 14px; color: var(--muted); margin-top: 0.5rem; }
+
+    /* PROFILE */
+    .profile-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; margin-bottom: 1.5rem; position: relative; overflow: hidden; display: flex; align-items: center; gap: 2rem; }
+    .profile-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .profile-avatar-big { width: 72px; height: 72px; border-radius: 50%; background: rgba(232,71,63,0.12); border: 2px solid rgba(232,71,63,0.2); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 1px; color: var(--accent); flex-shrink: 0; }
+    .profile-info { flex: 1; }
+    .profile-name { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; margin-bottom: 4px; }
+    .profile-email { font-size: 14px; color: var(--muted2); margin-bottom: 10px; }
+    .profile-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 4px 12px; border-radius: 999px; background: rgba(62,207,142,0.1); border: 1px solid rgba(62,207,142,0.2); color: var(--success); }
+    .profile-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .profile-stats { display: flex; gap: 2rem; }
+    .profile-stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; }
+    .profile-stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+    /* STATS ROW */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem 1.5rem; transition: border-color 0.2s; }
+    .stat-card:hover { border-color: var(--border2); }
+    .stat-card-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px; }
+    .stat-card-value { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 1px; line-height: 1; }
+    .stat-card-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .val-accent { color: var(--accent); }
+    .val-gold { color: var(--gold); }
+    .val-green { color: var(--success); }
+
+    /* HISTORY TABLE */
+    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; }
+    .section-count { font-size: 12px; color: var(--muted); background: var(--surface2); padding: 4px 12px; border-radius: 999px; border: 1px solid var(--border); }
+
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; overflow: hidden; overflow-x: auto; }
+    .history-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    .history-table thead tr { border-bottom: 1px solid var(--border); }
+    .history-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 0 1rem 0.75rem; text-align: left; font-weight: 400; white-space: nowrap; }
+    .history-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    .history-table tbody tr:last-child { border-bottom: none; }
+    .history-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+    .history-table td { padding: 1rem; font-size: 14px; color: var(--text); vertical-align: middle; }
+
+    .service-pill { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 999px; background: rgba(232,71,63,0.1); border: 1px solid rgba(232,71,63,0.2); color: var(--accent2); }
+    .price-text { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.5px; color: var(--gold); }
+    .date-text { font-size: 12px; color: var(--muted); }
+    .car-text { font-size: 13px; color: var(--muted2); }
+
+    /* Time badge in table */
+    .time-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--success); background: rgba(62,207,142,0.08); border: 1px solid rgba(62,207,142,0.15); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+
+    /* Pickup badge */
+    .pickup-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+    .pickup-badge.home { background: rgba(79,156,249,0.1); border: 1px solid rgba(79,156,249,0.2); color: var(--info); }
+    .pickup-badge.drop { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2); color: var(--gold); }
+
+    /* Payment badge */
+    .pay-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+    .pay-badge.online { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); color: #a78bfa; }
+    .pay-badge.cash { background: rgba(62,207,142,0.08); border: 1px solid rgba(62,207,142,0.15); color: var(--success); }
+
+    /* Service Buddy cell */
+    .buddy-cell { display: flex; align-items: center; gap: 10px; }
+    .buddy-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 0.5px; color: white; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.1); }
+    .buddy-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .buddy-phone { font-size: 12px; color: var(--muted); margin-top: 1px; display: flex; align-items: center; gap: 3px; }
+    .buddy-phone a { color: var(--info); text-decoration: none; }
+    .buddy-phone a:hover { text-decoration: underline; }
+
+    /* empty state */
+    .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+    .empty-icon { font-size: 48px; opacity: 0.25; margin-bottom: 1rem; }
+    .empty-text { font-size: 15px; margin-bottom: 1.5rem; }
+    .empty-btn { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .main { padding: 1.5rem; }
+      .profile-card { flex-direction: column; text-align: center; }
+      .stats-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/>
+          <rect x="9" y="11" width="14" height="10" rx="2"/>
+          <circle cx="12" cy="19" r="1"/><circle cx="20" cy="19" r="1"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">AutoCare</span>
+    </a>
+    <div class="nav-label">Menu</div>
+    <a href="/" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </a>
+    <a href="/dashboard" class="nav-item active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a href="/booking" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      New Booking
+    </a>
+    <div class="sidebar-bottom">
+      <div class="user-pill">
+        <div class="user-avatar" th:text="${#strings.length(user.name) >= 2 ? #strings.toUpperCase(#strings.substring(user.name,0,2)) : #strings.toUpperCase(user.name)}">RS</div>
+        <div>
+          <div class="user-pill-name" th:text="${user.name}">Name</div>
+          <div class="user-pill-email" th:text="${user.email}">email</div>
+        </div>
+      </div>
+      <a href="/logout" class="logout-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <div class="page-header">
+      <div class="page-eyebrow">My Account</div>
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Your profile, booking history &amp; assigned service buddies</div>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="profile-card">
+      <div class="profile-avatar-big" th:text="${#strings.length(user.name) >= 2 ? #strings.toUpperCase(#strings.substring(user.name,0,2)) : #strings.toUpperCase(user.name)}">RS</div>
+      <div class="profile-info">
+        <div class="profile-name" th:text="${user.name}">Rahul Sharma</div>
+        <div class="profile-email" th:text="${user.email}">rahul@example.com</div>
+        <div class="profile-badge">
+          <div class="profile-badge-dot"></div>
+          Active Member
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div>
+          <div class="profile-stat-num" th:text="${#lists.size(bookings)}">0</div>
+          <div class="profile-stat-label">Total Bookings</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-card-label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg>
+          Total Bookings
+        </div>
+        <div class="stat-card-value val-accent" th:text="${#lists.size(bookings)}">0</div>
+        <div class="stat-card-sub">services booked so far</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Total Spent
+        </div>
+        <div class="stat-card-value val-gold">₹<span th:text="${totalAmount}">0</span></div>
+        <div class="stat-card-sub">price includes all taxes with GST</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Last Service
+        </div>
+        <div class="stat-card-value" style="font-size:18px; padding-top:6px;">
+          <span th:if="${#lists.isEmpty(bookings)}" style="color:var(--muted); font-size:14px; font-family:'DM Sans',sans-serif;">None yet</span>
+          <span class="service-pill" th:unless="${#lists.isEmpty(bookings)}" th:text="${bookings[#lists.size(bookings)-1].serviceType}">Oil Change</span>
+        </div>
+        <div class="stat-card-sub" th:unless="${#lists.isEmpty(bookings)}" th:text="${bookings[#lists.size(bookings)-1].bookedAt}">date</div>
+      </div>
+    </div>
+
+    <!-- Booking History -->
+    <div class="section-head">
+      <div class="section-title">Booking History</div>
+      <div class="section-count" th:text="${#lists.size(bookings) + ' bookings'}">0 bookings</div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="history-table" th:unless="${#lists.isEmpty(bookings)}">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Car Model</th>
+            <th>Service</th>
+            <th>Est. Time</th>
+            <th>Collection</th>
+            <th>Payment</th>
+            <th>Price (incl. GST)</th>
+            <th>Date</th>
+            <th>Service Buddy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="b, stat : ${bookings}">
+            <td style="color:var(--muted); font-size:13px;" th:text="${stat.index + 1}">1</td>
+            <td>
+              <div style="font-weight:500;" th:text="${b.carModel}">Swift</div>
+            </td>
+            <td><span class="service-pill" th:text="${b.serviceType}">Oil Change</span></td>
+            <td>
+              <span class="time-badge" th:if="${b.estimatedTime != null}">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span th:text="${b.estimatedTime}">2h</span>
+              </span>
+              <span th:unless="${b.estimatedTime != null}" style="color:var(--muted); font-size:12px;">—</span>
+            </td>
+            <td>
+              <span class="pickup-badge home" th:if="${b.pickupOption == 'pickup'}">🏠 Home Pickup</span>
+              <span class="pickup-badge drop" th:if="${b.pickupOption == 'drop'}">🏪 Drop-off</span>
+              <span style="color:var(--muted); font-size:12px;" th:unless="${b.pickupOption != null}">—</span>
+            </td>
+            <td>
+              <span class="pay-badge online" th:if="${b.paymentMethod == 'online'}">💳 Online</span>
+              <span class="pay-badge cash" th:if="${b.paymentMethod == 'cash'}">💵 Cash</span>
+              <span style="color:var(--muted); font-size:12px;" th:unless="${b.paymentMethod != null}">—</span>
+            </td>
+            <td>
+              <span class="price-text" th:if="${b.price != null and !b.price.isEmpty()}" th:text="'₹' + ${b.price}">₹3,299</span>
+              <span style="color:var(--muted); font-size:13px;" th:unless="${b.price != null and !b.price.isEmpty()}">—</span>
+            </td>
+            <td><div class="date-text" th:text="${b.bookedAt != null ? b.bookedAt : '—'}">25 Mar 2025</div></td>
+
+            <!-- Service Buddy column -->
+            <td>
+              <div class="buddy-cell" th:if="${b.serviceBuddyName != null}">
+                <div class="buddy-avatar"
+                     th:text="${b.serviceBuddyPic != null ? b.serviceBuddyPic : 'SB'}"
+                     th:style="'background:' + (${b.serviceBuddyPic} != null ? 'hsl(' + ${b.serviceBuddyPic.hashCode() % 360} + ', 55%, 35%)' : '#333') + ';'">SB</div>
+                <div>
+                  <div class="buddy-name" th:text="${b.serviceBuddyName}">Arjun Sharma</div>
+                  <div class="buddy-phone">
+                    📞 <a th:href="'tel:' + ${b.serviceBuddyPhone != null ? b.serviceBuddyPhone.replaceAll(' ','') : ''}" th:text="${b.serviceBuddyPhone}">98201 34567</a>
+                  </div>
+                </div>
+              </div>
+              <span style="color:var(--muted); font-size:12px;" th:unless="${b.serviceBuddyName != null}">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" th:if="${#lists.isEmpty(bookings)}">
+        <div class="empty-icon">🚗</div>
+        <div class="empty-text">No bookings yet. Book your first service!</div>
+        <a href="/booking" class="empty-btn">
+          Book Now
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

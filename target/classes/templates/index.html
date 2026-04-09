@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoCare — Book a Service</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d0f;
+      --surface: #161618;
+      --surface2: #1e1e21;
+      --border: rgba(255,255,255,0.07);
+      --border-hover: rgba(255,255,255,0.15);
+      --accent: #e8473f;
+      --accent2: #ff6b35;
+      --gold: #c9a84c;
+      --text: #f0ede8;
+      --muted: #7a7875;
+      --muted2: #9a9793;
+      --success: #3ecf8e;
+      --info: #4f9cf9;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+    body::after { content: ''; position: fixed; top: -200px; left: 50%; transform: translateX(-50%); width: 700px; height: 500px; background: radial-gradient(ellipse, rgba(232,71,63,0.12) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+    .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+    header { padding: 2rem 0 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo-icon { width: 40px; height: 40px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--text); line-height: 1; }
+    .logo-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+    .header-badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 999px; padding: 6px 16px; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .hero { padding: 4rem 0 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+    .hero-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--accent); margin-bottom: 1.2rem; display: flex; align-items: center; gap: 8px; }
+    .hero-label::before { content: ''; display: inline-block; width: 24px; height: 1px; background: var(--accent); }
+    h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 5.5vw, 72px); line-height: 0.95; letter-spacing: 1px; margin-bottom: 1.5rem; }
+    h1 span { color: var(--accent); display: block; }
+    .hero-desc { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 380px; }
+
+    /* Service time info strip */
+    .time-strip { margin-top: 2rem; display: flex; flex-direction: column; gap: 10px; }
+    .time-item { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 13px; }
+    .time-item-service { color: var(--muted2); }
+    .time-item-time { color: var(--success); font-weight: 500; display: flex; align-items: center; gap: 5px; }
+
+    /* Form card */
+    .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; position: relative; overflow: hidden; }
+    .form-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .form-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; margin-bottom: 1.5rem; color: var(--text); }
+    .form-group { margin-bottom: 1.1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.1rem; }
+    label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 6px; }
+    input[type="text"], select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 300; transition: border-color 0.2s, background 0.2s; outline: none; appearance: none; }
+    input[type="text"]:focus, select:focus { border-color: var(--accent); background: rgba(232,71,63,0.05); }
+    input[type="text"]::placeholder { color: var(--muted); }
+    select option { background: #1e1e21; color: var(--text); }
+
+    /* Price display — final price with GST */
+    .price-display { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; padding: 10px 16px; min-height: 48px; }
+    .price-amount { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; color: var(--gold); }
+    .price-gst-note { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+    /* Est time badge in form */
+    .est-time-badge { display: flex; align-items: center; gap: 6px; background: rgba(62,207,142,0.07); border: 1px solid rgba(62,207,142,0.15); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--success); margin-bottom: 1.1rem; min-height: 48px; }
+    .est-time-badge svg { flex-shrink: 0; opacity: 0.8; }
+    .est-time-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
+
+    /* Pickup / Drop toggle */
+    .toggle-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .toggle-option { position: relative; }
+    .toggle-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .toggle-label { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s; text-align: center; }
+    .toggle-option input[type="radio"]:checked + .toggle-label { border-color: var(--accent); background: rgba(232,71,63,0.08); }
+    .toggle-icon { font-size: 20px; }
+    .toggle-name { font-size: 12px; font-weight: 500; color: var(--text); }
+    .toggle-price { font-size: 11px; color: var(--success); }
+    .toggle-desc { font-size: 10px; color: var(--muted); line-height: 1.4; }
+
+    /* Payment toggle */
+    .payment-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .pay-option { position: relative; }
+    .pay-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .pay-label { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+    .pay-option input[type="radio"]:checked + .pay-label { border-color: var(--info); background: rgba(79,156,249,0.08); }
+    .pay-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .pay-icon-online { background: rgba(79,156,249,0.15); }
+    .pay-icon-cash { background: rgba(201,168,76,0.15); }
+    .pay-text { font-size: 13px; font-weight: 500; color: var(--text); }
+    .pay-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+    /* Total price bar */
+    .total-bar { background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.18); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .total-label { font-size: 12px; color: var(--muted); }
+    .total-amount { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 1px; color: var(--gold); }
+    .total-breakdown { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .submit-btn { width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; border-radius: 10px; padding: 14px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; cursor: pointer; transition: opacity 0.2s, transform 0.15s; }
+    .submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .submit-btn:active { transform: scale(0.99); }
+
+    /* Online payment modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; width: 100%; max-width: 380px; position: relative; }
+    .modal::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--info), #7c3aed); border-radius: 20px 20px 0 0; }
+    .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; margin-bottom: 4px; }
+    .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; }
+    .upi-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
+    .upi-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: border-color 0.2s; }
+    .upi-btn:hover { border-color: var(--info); }
+    .upi-btn span { font-size: 11px; color: var(--muted2); }
+    .upi-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 2px; }
+    .modal-amount { text-align: center; padding: 14px; background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; margin-bottom: 1.2rem; }
+    .modal-amount-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--gold); }
+    .modal-amount-gst { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .modal-pay-btn { width: 100%; background: linear-gradient(135deg, #4f9cf9, #7c3aed); color: white; border: none; border-radius: 10px; padding: 13px; font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 1px; cursor: pointer; transition: opacity 0.2s; }
+    .modal-pay-btn:hover { opacity: 0.9; }
+    .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; }
+
+    /* Bookings section */
+    .section-divider { display: flex; align-items: center; gap: 1.5rem; padding: 2rem 0 2.5rem; }
+    .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .section-tag { font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 3px; color: var(--muted); white-space: nowrap; }
+    .bookings-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1.5rem; }
+    .bookings-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 1px; }
+    .bookings-count { font-size: 13px; color: var(--muted); }
+    .bookings-count span { color: var(--accent); font-weight: 500; }
+    .bookings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; padding-bottom: 4rem; }
+    .booking-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem 1.5rem; transition: border-color 0.2s, transform 0.2s; animation: fadeUp 0.4s ease both; }
+    .booking-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 1px; color: var(--accent); }
+    .service-badge { font-size: 11px; padding: 4px 10px; border-radius: 999px; background: rgba(232,71,63,0.1); border: 1px solid rgba(232,71,63,0.2); color: var(--accent2); letter-spacing: 0.05em; }
+    .card-name { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+    .card-meta { font-size: 13px; color: var(--muted); display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+    .card-price { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--gold); letter-spacing: 0.5px; }
+    .card-time { font-size: 11px; color: var(--success); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+    .empty { grid-column: 1/-1; text-align: center; padding: 4rem 2rem; color: var(--muted); }
+    .empty-icon { font-size: 48px; margin-bottom: 1rem; opacity: 0.3; }
+    .empty-text { font-size: 15px; }
+    .divider-line { height: 1px; background: var(--border); margin: 0.75rem 0; }
+    @media (max-width: 768px) { .hero { grid-template-columns: 1fr; gap: 2.5rem; } .form-row { grid-template-columns: 1fr; } h1 { font-size: 52px; } }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <header>
+    <a href="/" class="logo">
+      <div class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/>
+          <rect x="9" y="11" width="14" height="10" rx="2"/>
+          <circle cx="12" cy="19" r="1"/><circle cx="20" cy="19" r="1"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">AutoCare</div>
+        <div class="logo-sub">Service Booking</div>
+      </div>
+    </a>
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <a href="/dashboard" style="font-size:12px; color:var(--muted2); text-decoration:none; padding:6px 14px; border:1px solid var(--border); border-radius:999px; transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted2)'">Dashboard</a>
+      <div class="header-badge">
+        <div class="dot"></div>
+        <span th:if="${user}" th:text="'Hi, ' + ${user.name}">Hi, User</span>
+        <span th:unless="${user}">System Online</span>
+      </div>
+      <a href="/logout" style="font-size:12px; color:var(--muted); text-decoration:none; padding:6px 14px; border:1px solid var(--border); border-radius:999px;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Logout</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="hero-label">Professional car care</div>
+      <h1>Book Your <span>Service</span> Today</h1>
+      <p class="hero-desc">Choose your service, pick pickup or drop-off, pay online or cash — we handle everything from there.</p>
+
+      <!-- Service time reference -->
+      <div class="time-strip" style="margin-top:2rem;">
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.15em; color:var(--muted); margin-bottom:4px;">⏱ Estimated Service Times</div>
+        <div class="time-item"><span class="time-item-service">Oil Change</span><span class="time-item-time">⏱ 45–60 mins</span></div>
+        <div class="time-item"><span class="time-item-service">Full Service</span><span class="time-item-time">⏱ 4–6 hours</span></div>
+        <div class="time-item"><span class="time-item-service">Tyre Rotation</span><span class="time-item-time">⏱ 30–45 mins</span></div>
+        <div class="time-item"><span class="time-item-service">Brake Service</span><span class="time-item-time">⏱ 1.5–2 hours</span></div>
+        <div class="time-item"><span class="time-item-service">AC Service</span><span class="time-item-time">⏱ 2–3 hours</span></div>
+        <div class="time-item"><span class="time-item-service">Diagnostics</span><span class="time-item-time">⏱ 1–2 hours</span></div>
+        <div class="time-item"><span class="time-item-service">Gear Oil Change</span><span class="time-item-time">⏱ 45–60 mins</span></div>
+        <div class="time-item"><span class="time-item-service">Suspension Service</span><span class="time-item-time">⏱ 2–3 hours</span></div>
+        <div class="time-item"><span class="time-item-service">Windshield &amp; Lights</span><span class="time-item-time">⏱ 1–2 hours</span></div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-title">New Booking</div>
+      <form action="/save" method="post" id="bookingForm">
+        <div class="form-group">
+          <label for="name">Your Name</label>
+          <input type="text" id="name" name="name" placeholder="e.g. Rahul Sharma" required/>
+        </div>
+        <div class="form-group">
+          <label for="carModel">Car Model</label>
+          <input type="text" id="carModel" name="carModel" placeholder="e.g. Maruti Swift, Honda City" required/>
+        </div>
+
+        <div class="form-group">
+          <label for="serviceType">Service Type</label>
+          <select id="serviceType" name="serviceType" required onchange="updateAll(this)">
+            <option value="" disabled selected>Select service...</option>
+            <option value="Oil Change"           data-price="3299"  data-time="45–60 mins">Oil Change — ₹3,299</option>
+            <option value="Full Service"         data-price="6499"  data-time="4–6 hours">Full Service — ₹6,499</option>
+            <option value="Tyre Rotation"        data-price="3799"  data-time="30–45 mins">Tyre Rotation — ₹3,799</option>
+            <option value="Brake Service"        data-price="4999"  data-time="1.5–2 hours">Brake Service — ₹4,999</option>
+            <option value="AC Service"           data-price="5499"  data-time="2–3 hours">AC Service — ₹5,499</option>
+            <option value="Diagnostics"          data-price="3099"  data-time="1–2 hours">Diagnostics — ₹3,099</option>
+            <option value="Gear Oil Change"      data-price="3499"  data-time="45–60 mins">Gear Oil Change — ₹3,499</option>
+            <option value="Suspension Service"   data-price="5299"  data-time="2–3 hours">Suspension Service — ₹5,299</option>
+            <option value="Windshield &amp; Lights" data-price="3799"  data-time="1–2 hours">Windshield &amp; Lights — ₹3,799</option>
+          </select>
+        </div>
+
+        <!-- Est time badge (shown after service selection) -->
+        <div class="est-time-badge" id="estTimeBadge" style="display:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <div>
+            <div class="est-time-label">Estimated Time</div>
+            <span id="estTimeText" style="font-weight:500;">—</span>
+          </div>
+        </div>
+
+        <!-- Pickup / Drop option -->
+        <div class="form-group">
+          <label>Vehicle Collection</label>
+          <div class="toggle-group">
+            <div class="toggle-option">
+              <input type="radio" name="pickupOption" id="optPickup" value="pickup" onchange="updateTotal()" required/>
+              <label class="toggle-label" for="optPickup">
+                <span class="toggle-icon">🏠</span>
+                <span class="toggle-name">Pickup from Home</span>
+                <span class="toggle-price">+₹499</span>
+                <span class="toggle-desc">We collect &amp; return your vehicle</span>
+              </label>
+            </div>
+            <div class="toggle-option">
+              <input type="radio" name="pickupOption" id="optDrop" value="drop" onchange="updateTotal()"/>
+              <label class="toggle-label" for="optDrop">
+                <span class="toggle-icon">🏪</span>
+                <span class="toggle-name">Drop at Service</span>
+                <span class="toggle-price">Free</span>
+                <span class="toggle-desc">Drop your car at our centre</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment method -->
+        <div class="form-group">
+          <label>Payment Method</label>
+          <div class="payment-group">
+            <div class="pay-option">
+              <input type="radio" name="paymentMethod" id="payOnline" value="online" onchange="updateTotal()" required/>
+              <label class="pay-label" for="payOnline">
+                <div class="pay-icon pay-icon-online">💳</div>
+                <div>
+                  <div class="pay-text">Online Payment</div>
+                  <div class="pay-sub">UPI / Card / Net Banking</div>
+                </div>
+              </label>
+            </div>
+            <div class="pay-option">
+              <input type="radio" name="paymentMethod" id="payCash" value="cash" onchange="updateTotal()"/>
+              <label class="pay-label" for="payCash">
+                <div class="pay-icon pay-icon-cash">💵</div>
+                <div>
+                  <div class="pay-text">Pay at Centre</div>
+                  <div class="pay-sub">Cash on delivery</div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total bar -->
+        <div class="total-bar" id="totalBar" style="display:none;">
+          <div>
+            <div class="total-label">Price including all taxes with GST</div>
+            <div class="total-breakdown" id="priceBreakdown">Service — + Pickup — + GST 18%</div>
+          </div>
+          <div class="total-amount" id="totalDisplay">₹0</div>
+        </div>
+
+        <input type="hidden" id="price" name="price" value=""/>
+
+        <button type="button" class="submit-btn" id="submitBtn" onclick="handleSubmit()">Book Service</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ─── Bookings below ─── -->
+  <div class="section-divider"><span class="section-tag">All Bookings</span></div>
+  <div class="bookings-header">
+    <div class="bookings-title">Active Bookings</div>
+    <div class="bookings-count" th:if="${list != null}">
+      <span th:text="${#lists.size(list)}">0</span> total
+    </div>
+  </div>
+
+  <div class="bookings-grid">
+    <div th:each="b, stat : ${list}" class="booking-card" th:style="'animation-delay:' + ${stat.index * 80} + 'ms'">
+      <div class="card-top">
+        <div class="avatar" th:text="${#strings.length(b.name) >= 2 ? #strings.toUpperCase(#strings.substring(b.name,0,2)) : #strings.toUpperCase(b.name)}">RS</div>
+        <div class="service-badge" th:text="${b.serviceType}">Oil Change</div>
+      </div>
+      <div class="card-name" th:text="${b.name}">Name</div>
+      <div class="card-meta">
+        <span th:text="${b.carModel}">Car Model</span>
+        <span class="card-price" th:text="${b.price != null and b.price != '' ? '₹' + b.price : '—'}">₹3,299</span>
+      </div>
+      <div class="card-time" th:if="${b.estimatedTime != null}">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span th:text="${b.estimatedTime}">2–3 hours</span>
+      </div>
+    </div>
+    <div class="empty" th:if="${list == null or #lists.isEmpty(list)}">
+      <div class="empty-icon">🚗</div>
+      <div class="empty-text">No bookings yet. Be the first to book!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Online Payment Modal ─── -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">Online Payment</div>
+    <div class="modal-sub">Choose your preferred payment method</div>
+    <div class="modal-amount">
+      <div class="modal-amount-num" id="modalAmount">₹0</div>
+      <div class="modal-amount-gst">Price includes all taxes with GST</div>
+    </div>
+    <div class="upi-options">
+      <div class="upi-btn" onclick="selectUpi(this)">
+        <div class="upi-icon" style="background:rgba(79,156,249,0.15);">📱</div>
+        <span>GPay</span>
+      </div>
+      <div class="upi-btn" onclick="selectUpi(this)">
+        <div class="upi-icon" style="background:rgba(124,58,237,0.15);">💜</div>
+        <span>PhonePe</span>
+      </div>
+      <div class="upi-btn" onclick="selectUpi(this)">
+        <div class="upi-icon" style="background:rgba(232,71,63,0.15);">🅿️</div>
+        <span>Paytm</span>
+      </div>
+      <div class="upi-btn" onclick="selectUpi(this)">
+        <div class="upi-icon" style="background:rgba(62,207,142,0.15);">🏦</div>
+        <span>Net Banking</span>
+      </div>
+    </div>
+    <button class="modal-pay-btn" id="modalPayBtn" onclick="confirmPayment()">Pay Now</button>
+  </div>
+</div>
+
+<script>
+  let basePrice = 0;
+  let pickupFee = 0;
+  let selectedUpi = null;
+
+  const SERVICES = {
+    "Oil Change":            { price: 3299, time: "45–60 mins"  },
+    "Full Service":          { price: 6499, time: "4–6 hours"   },
+    "Tyre Rotation":         { price: 3799, time: "30–45 mins"  },
+    "Brake Service":         { price: 4999, time: "1.5–2 hours" },
+    "AC Service":            { price: 5499, time: "2–3 hours"   },
+    "Diagnostics":           { price: 3099, time: "1–2 hours"   },
+    "Gear Oil Change":       { price: 3499, time: "45–60 mins"  },
+    "Suspension Service":    { price: 5299, time: "2–3 hours"   },
+    "Windshield & Lights":   { price: 3799, time: "1–2 hours"   }
+  };
+
+  function updateAll(select) {
+    const val = select.value;
+    if (!val || !SERVICES[val]) return;
+    basePrice = SERVICES[val].price;
+
+    // Show estimated time
+    const badge = document.getElementById('estTimeBadge');
+    const timeText = document.getElementById('estTimeText');
+    badge.style.display = 'flex';
+    timeText.textContent = SERVICES[val].time;
+
+    updateTotal();
+  }
+
+  function updateTotal() {
+    const pickupRadio = document.querySelector('input[name="pickupOption"]:checked');
+    pickupFee = (pickupRadio && pickupRadio.value === 'pickup') ? 499 : 0;
+
+    if (basePrice === 0) return;
+
+    const subtotal = basePrice + pickupFee;
+    const gst = Math.round(subtotal * 0.18);
+    const total = subtotal + gst;
+
+    document.getElementById('totalBar').style.display = 'flex';
+    document.getElementById('totalDisplay').textContent = '₹' + total.toLocaleString('en-IN');
+    document.getElementById('price').value = total;
+
+    const pickupText = pickupFee > 0 ? `Pickup ₹499 + ` : `Drop (Free) + `;
+    document.getElementById('priceBreakdown').textContent =
+      `Service ₹${basePrice.toLocaleString('en-IN')} + ${pickupText}GST 18% = ₹${total.toLocaleString('en-IN')}`;
+  }
+
+  function handleSubmit() {
+    const form = document.getElementById('bookingForm');
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+
+    const payMethod = document.querySelector('input[name="paymentMethod"]:checked');
+    if (!payMethod) { alert('Please select a payment method.'); return; }
+
+    if (payMethod.value === 'online') {
+      const total = document.getElementById('price').value;
+      document.getElementById('modalAmount').textContent = '₹' + parseInt(total).toLocaleString('en-IN');
+      document.getElementById('payModal').classList.add('active');
+    } else {
+      form.submit();
+    }
+  }
+
+  function selectUpi(el) {
+    document.querySelectorAll('.upi-btn').forEach(b => b.style.borderColor = '');
+    el.style.borderColor = '#4f9cf9';
+    selectedUpi = el.querySelector('span').textContent;
+  }
+
+  function confirmPayment() {
+    if (!selectedUpi) { alert('Please select a payment option.'); return; }
+    document.getElementById('modalPayBtn').textContent = 'Processing...';
+    setTimeout(() => {
+      closeModal();
+      document.getElementById('bookingForm').submit();
+    }, 1200);
+  }
+
+  function closeModal() {
+    document.getElementById('payModal').classList.remove('active');
+  }
+</script>
+</body>
+</html>
