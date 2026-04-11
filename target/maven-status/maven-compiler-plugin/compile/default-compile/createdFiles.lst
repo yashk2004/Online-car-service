@@ -1,5 +1,10 @@
+com\example\controller\AuthController.class
 com\example\controller\BookingController.class
 com\example\repository\BookingRepository.class
+com\example\repository\UserRepository.class
+com\example\controller\AdminController.class
 com\example\model\Booking.class
+com\example\service\UserService.class
 com\example\service\BookingService.class
+com\example\model\User.class
 com\example\CarServiceApplication.class
