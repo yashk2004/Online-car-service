@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoCare — Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#080809;--surface:#111113;--surface2:#1a1a1e;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+      --accent:#e8473f;--accent2:#ff6b35;--gold:#c9a84c;
+      --text:#f0ede8;--muted:#7a7875;--muted2:#9a9793;
+      --success:#3ecf8e;--info:#4a9eff;
+    }
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+
+    .layout{display:grid;grid-template-columns:220px 1fr;min-height:100vh;position:relative;z-index:1}
+
+    /* SIDEBAR */
+    .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:1.75rem 1.25rem;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+    .sidebar-logo{display:flex;align-items:center;gap:10px;text-decoration:none;margin-bottom:0.75rem}
+    .sidebar-logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .sidebar-logo-text{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--text)}
+    .admin-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);color:var(--gold);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;padding:3px 10px;border-radius:999px;margin-bottom:2rem}
+    .nav-label{font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:var(--muted);margin-bottom:0.6rem;margin-top:1.25rem;padding-left:4px}
+    .nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;text-decoration:none;font-size:13px;color:var(--muted2);transition:background 0.2s,color 0.2s;margin-bottom:2px}
+    .nav-item:hover{background:var(--surface2);color:var(--text)}
+    .nav-item.active{background:rgba(201,168,76,0.1);color:var(--text);border:1px solid rgba(201,168,76,0.15)}
+    .sidebar-bottom{margin-top:auto}
+    .admin-badge-bottom{display:flex;align-items:center;gap:9px;padding:11px;background:var(--surface2);border-radius:11px;border:1px solid var(--border);margin-bottom:0.5rem}
+    .admin-avatar{width:32px;height:32px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.25);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:12px;color:var(--gold);flex-shrink:0}
+    .admin-name{font-size:12px;font-weight:500;color:var(--text)}
+    .admin-role{font-size:10px;color:var(--muted)}
+    .logout-link{display:flex;align-items:center;gap:7px;padding:8px 11px;border-radius:9px;text-decoration:none;font-size:12px;color:var(--muted);transition:background 0.2s,color 0.2s}
+    .logout-link:hover{background:rgba(232,71,63,0.08);color:var(--accent)}
+
+    /* MAIN */
+    .main{padding:2.5rem;overflow-x:auto}
+    .page-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:0.2em;color:var(--gold);margin-bottom:0.4rem;display:flex;align-items:center;gap:7px}
+    .page-eyebrow::before{content:'';width:18px;height:1px;background:var(--gold)}
+    .page-title{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:1px;line-height:1;margin-bottom:0.3rem}
+    .page-sub{font-size:13px;color:var(--muted);margin-bottom:2rem}
+
+    /* STATS */
+    .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:2rem}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.25rem;transition:border-color 0.2s;position:relative;overflow:hidden}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+    .stat-card:nth-child(1)::before{background:var(--accent)}
+    .stat-card:nth-child(2)::before{background:var(--gold)}
+    .stat-card:nth-child(3)::before{background:var(--success)}
+    .stat-card:nth-child(4)::before{background:var(--info)}
+    .stat-card:nth-child(5)::before{background:var(--accent2)}
+    .stat-card:hover{border-color:var(--border2)}
+    .stat-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.6rem;display:flex;align-items:center;gap:5px}
+    .stat-value{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;line-height:1}
+    .stat-sub{font-size:11px;color:var(--muted);margin-top:3px}
+    .v-red{color:var(--accent)}.v-gold{color:var(--gold)}.v-green{color:var(--success)}.v-blue{color:var(--info)}.v-orange{color:var(--accent2)}
+
+    /* TABLE SECTION */
+    .section-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+    .section-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px}
+    .section-badge{font-size:11px;color:var(--muted);background:var(--surface2);padding:3px 10px;border-radius:999px;border:1px solid var(--border)}
+
+    .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+    .tbl{width:100%;border-collapse:collapse;min-width:1100px}
+    .tbl thead tr{border-bottom:1px solid var(--border)}
+    .tbl th{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);padding:0.9rem 1rem;text-align:left;font-weight:400;white-space:nowrap}
+    .tbl tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
+    .tbl tbody tr:last-child{border-bottom:none}
+    .tbl tbody tr:hover{background:rgba(255,255,255,0.015)}
+    .tbl td{padding:0.9rem 1rem;font-size:13px;vertical-align:middle}
+
+    /* CELL STYLES */
+    .user-cell{display:flex;align-items:center;gap:8px}
+    .user-avatar{width:30px;height:30px;border-radius:50%;background:rgba(232,71,63,0.12);border:1px solid rgba(232,71,63,0.2);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:11px;color:var(--accent);flex-shrink:0}
+    .user-name{font-size:13px;font-weight:500}
+    .user-car{font-size:11px;color:var(--muted)}
+    .svc-pill{display:inline-block;font-size:11px;padding:3px 9px;border-radius:999px;background:rgba(232,71,63,0.1);border:1px solid rgba(232,71,63,0.2);color:var(--accent2);white-space:nowrap}
+    .time-val{font-size:12px;color:var(--info);display:flex;align-items:center;gap:4px;white-space:nowrap}
+    .pickup-home{font-size:12px;color:var(--accent2)}
+    .pickup-drop{font-size:12px;color:var(--success)}
+    .pay-online{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:999px;background:rgba(74,158,255,0.1);border:1px solid rgba(74,158,255,0.2);color:var(--info)}
+    .pay-cash{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:999px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);color:var(--gold)}
+    .price-val{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--gold)}
+    .date-val{font-size:11px;color:var(--muted);white-space:nowrap}
+    .buddy-cell{display:flex;align-items:center;gap:8px}
+    .buddy-avatar{width:32px;height:32px;border-radius:50%;background:rgba(62,207,142,0.1);border:1.5px solid rgba(62,207,142,0.2);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:11px;color:var(--success);flex-shrink:0}
+    .buddy-name{font-size:12px;font-weight:500;color:var(--text)}
+    .buddy-phone{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:3px}
+
+    /* empty */
+    .empty-state{padding:4rem 2rem;text-align:center;color:var(--muted)}
+    .empty-icon{font-size:44px;opacity:0.2;margin-bottom:1rem}
+
+    @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}.main{padding:1.5rem}.stats-row{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/>
+          <rect x="9" y="11" width="14" height="10" rx="2"/>
+          <circle cx="12" cy="19" r="1"/><circle cx="20" cy="19" r="1"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">AutoCare</span>
+    </a>
+    <div class="admin-pill">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Admin Panel
+    </div>
+
+    <div class="nav-label">Overview</div>
+    <a href="/admin/dashboard" class="nav-item active">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      All Bookings
+    </a>
+
+    <div class="sidebar-bottom">
+      <div class="admin-badge-bottom">
+        <div class="admin-avatar">AD</div>
+        <div>
+          <div class="admin-name">Admin</div>
+          <div class="admin-role">admin@autocare.com</div>
+        </div>
+      </div>
+      <a href="/admin/logout" class="logout-link">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-eyebrow">Admin Panel</div>
+    <div class="page-title">All Bookings</div>
+    <div class="page-sub">Every booking made by all users across the platform</div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg>
+          Total Bookings
+        </div>
+        <div class="stat-value v-red" th:text="${totalBookings}">0</div>
+        <div class="stat-sub">all time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Total Revenue
+        </div>
+        <div class="stat-value v-gold">
+          ₹<span th:text="${totalRevenue}">0</span>
+        </div>
+        <div class="stat-sub">incl. GST</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Online Payments
+        </div>
+        <div class="stat-value v-blue" th:text="${onlinePayments}">0</div>
+        <div class="stat-sub">UPI / Card</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Cash Payments
+        </div>
+        <div class="stat-value v-green" th:text="${cashPayments}">0</div>
+        <div class="stat-sub">on delivery</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Home Pickups
+        </div>
+        <div class="stat-value v-orange" th:text="${homePickups}">0</div>
+        <div class="stat-sub">door step</div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="section-row">
+      <div class="section-title">Booking Records</div>
+      <div class="section-badge" th:text="${totalBookings} + ' total bookings'">0 bookings</div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="tbl" th:unless="${#lists.isEmpty(bookings)}">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Service</th>
+            <th>Est. Time</th>
+            <th>Collection</th>
+            <th>Payment</th>
+            <th>Price (Incl. GST)</th>
+            <th>Date</th>
+            <th>Service Buddy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="b, stat : ${bookings}">
+            <td style="color:var(--muted);font-size:12px;" th:text="${stat.index + 1}">1</td>
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar" th:text="${#strings.length(b.name) >= 2 ? #strings.toUpperCase(#strings.substring(b.name,0,2)) : #strings.toUpperCase(b.name)}">RS</div>
+                <div>
+                  <div class="user-name" th:text="${b.name}">Name</div>
+                  <div class="user-car" th:text="${b.carModel}">Car</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="svc-pill" th:text="${b.serviceType}">Oil Change</span></td>
+            <td>
+              <div class="time-val">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span th:text="${b.estimatedTime != null ? b.estimatedTime : '—'}">2 hrs</span>
+              </div>
+            </td>
+            <td>
+              <span class="pickup-home" th:if="${b.pickupOption == 'pickup'}">🚗 Home Pickup</span>
+              <span class="pickup-drop" th:if="${b.pickupOption == 'drop'}">🏠 Drop-in</span>
+              <span th:if="${b.pickupOption == null}" style="color:var(--muted)">—</span>
+            </td>
+            <td>
+              <span class="pay-online" th:if="${b.paymentMethod == 'online'}">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                Online
+              </span>
+              <span class="pay-cash" th:if="${b.paymentMethod == 'cash'}">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Cash
+              </span>
+              <span th:if="${b.paymentMethod == null}" style="color:var(--muted)">—</span>
+            </td>
+            <td>
+              <span class="price-val" th:if="${b.price != null and !b.price.isEmpty()}" th:text="'₹' + ${b.price}">₹3299</span>
+              <span th:unless="${b.price != null and !b.price.isEmpty()}" style="color:var(--muted)">—</span>
+            </td>
+            <td><div class="date-val" th:text="${b.bookedAt != null ? b.bookedAt : '—'}">10 Apr 2026</div></td>
+            <td>
+              <div class="buddy-cell" th:if="${b.serviceBuddyName != null}">
+                <div class="buddy-avatar" th:text="${b.serviceBuddyPic}">AS</div>
+                <div>
+                  <div class="buddy-name" th:text="${b.serviceBuddyName}">Arjun Sharma</div>
+                  <div class="buddy-phone">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.77 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <span th:text="${b.serviceBuddyPhone}">98201 34567</span>
+                  </div>
+                </div>
+              </div>
+              <span th:unless="${b.serviceBuddyName != null}" style="color:var(--muted);font-size:12px">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" th:if="${#lists.isEmpty(bookings)}">
+        <div class="empty-icon">📋</div>
+        <div>No bookings yet across the platform.</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>
